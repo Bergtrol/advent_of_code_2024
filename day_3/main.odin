@@ -16,15 +16,18 @@ main :: proc() {
 	}
 	defer delete(data)
 
-	acc := 0
-	total := 0
+	on := true
+
+	acc1 := 0
+	acc2 := 0
 	parts := strings.split(string(data), "mul(")
 	fmt.print("Starting evaluation of ")
 	fmt.print(len(parts))
 	fmt.println(" parts")
 
 	for part, index in parts {
-		fmt.print("Checking parts[")
+		fmt.println("---------------------")
+		fmt.print(" -Checking parts[")
 		fmt.print(index)
 		fmt.print("] \"")
 		fmt.print(part)
@@ -33,18 +36,18 @@ main :: proc() {
 		terms := strings.split(part, ",")
 
 		if (len(terms) < 2) {
-			fmt.println(" and didn't find enough terms")
+			// fmt.println(" and didn't find enough terms")
 			continue
 		}
 		
 		val1 := get_value(0,terms[0])
 		if val1 <= 0 {
-			fmt.println(" and didn't find a first term")
+			// fmt.println(" and didn't find a first term")
 			continue
 		}
 		val2 := get_value(1,terms[1])
 		if val2 <= 0 {
-			fmt.println(" and didn't find a second term")
+			// fmt.println(" and didn't find a second term")
 			continue
 		}
 		fmt.println("")
@@ -52,21 +55,48 @@ main :: proc() {
 		fmt.println(val1,val2)
 		// fmt.printfln("Running total: %d + %d * %d",acc,val1,val2)
 		// fmt.printfln("             = %d + %d",acc,val1*val2)
-		acc += val1 * val2
+		acc1 += val1 * val2
 		// fmt.printfln("             = %d",acc)
-		total += 1
 		// buf: [256]byte; 
 		// num_bytes, err := os.read(os.stdin, buf[:]);
+
+		if on {
+			acc2 += val1 * val2
+		}
+
+		on = check_on(on, part)
 	}
 
-	fmt.printfln("Total muls = %d", total)
 	fmt.println("Final Answer")
-	fmt.println(acc)
+	fmt.println("Part1 = ", acc1)
+	fmt.println("Part2 = ", acc2)
+}
+
+check_on :: proc(on:bool, s:string) -> bool {
+	// fmt.printfln("Checking for toggles in \"%s\"", s)
+	command: string
+	if on {
+		command = "don't()"
+	} else {
+		command = "do()"
+	}
+
+	checks := strings.split_after(s, command)
+	fmt.println()
+	fmt.println("Parts to check for commands:")
+	fmt.println(checks)
+	if len(checks) > 1 {
+		fmt.println("found ", command, ", continuing checks...")
+		return check_on(!on, checks[1])
+	}
+
+	fmt.printfln("no command found, returning ", on)
+	return on
 }
 
 get_value :: proc(i:int, s:string) -> int {
 	term2:= strings.builder_make()
-	fmt.println()
+	// fmt.println()
 	closeparan:= false
 	loop: for char in s {
 		// fmt.printfln("char == %c", char)
